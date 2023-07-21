@@ -2,6 +2,8 @@
 
 > [Google教程](https://developer.android.com/jetpack/compose/setup?hl=zh-cn#bom-version-mapping)
 >
+> [Jetpack Compose中的副作用](https://blog.csdn.net/lyabc123456/article/details/128518034)
+> 
 > [官方用例compose-samples](https://github.com/android/compose-samples)
 >
 > [BoM 物料清单](https://developer.android.com/jetpack/compose/bom/bom?hl=zh-cn)
@@ -74,7 +76,6 @@ Scaffold主要用于快速搭建一个项目的结构，包含：
 
 ![组合中可组合项的生命周期。进入组合，执行 0 次或多次重组，然后退出组合](https://developer.android.com/static/images/jetpack/compose/lifecycle-composition.png?hl=zh-cn)
 
-
 组合中可组合项的生命周期。进入组合，执行 0 次或多次重组，然后退出组合。
 
 - onActive（or onEnter）：当Composable首次进入组件树时
@@ -97,6 +98,21 @@ Scaffold主要用于快速搭建一个项目的结构，包含：
 尽可能推迟状态读取的原因，其实还是**希望我们可以在某些场景下直接跳过Recomposition的阶段、甚至Layout的阶段，只影响到Draw。**
 
 ## 副作用
+建议先看[官方文档](https://developer.android.com/jetpack/compose/side-effects?hl=zh-cn)然后再看一下这篇博客[Jetpack Compose中的副作用](https://blog.csdn.net/lyabc123456/article/details/128518034)就差不多理解副作用概念了  
+
+- **非挂起的副作用**：例如当 Composable 进入组合时，运行一个副作用来初始化一个回调，当 Composable 离开组合，销毁这个回调。
+  
+  - DisposableEffect
+  - SideEffect
+  - currentRecomposeScope：currentRecomposeScope 的作用与View#invalidate方法类似，通过调用 currentRecomposeScope.invalidate()，它将使当前时刻的本地组合无效，并强制触发重组。一般用于手动触发重组。
+  
+- **挂起的副作用**：例如从网络加载数据以提供一些UI状态。
+  - LaunchedEffect
+  - rememberCoroutineScope
+  - rememberUpdatedState
+  - snapshotFlow
+  - produceState
+  - derivedStateOf
 
 ### [LaunchedEffect：在某个可组合项的作用域内运行挂起函数](https://developer.android.com/jetpack/compose/side-effects?hl=zh-cn#launchedeffect)
 
@@ -110,18 +126,22 @@ key1传Unit或者true，首次渲染执行一次，重组则不再执行。key1�
 
 `rememberCoroutineScope` 是一个可组合函数，会返回一个 `CoroutineScope`，该 CoroutineScope 绑定到调用它的组合点。调用退出组合后，作用域将取消。
 
+> 与 `LaunchedEffect` 不同的是，`LaunchedEffect` 用于限定由**组合**发起的作业的作用域，而`rememberCoroutineScope` 则用于限定由**用户交互**发起的作业的作用域。
+
 ### [rememberUpdatedState：在效应中引用某个值，该效应在值改变时不应重启](https://developer.android.com/jetpack/compose/side-effects?hl=zh-cn#rememberupdatedstate)
 
 当其中一个键参数发生变化时，`LaunchedEffect` 会重启。不过，在某些情况下，您可能希望在效应中捕获某个值，但如果该值发生变化，您不希望效应重启。为此，需要使用 `rememberUpdatedState` 来创建对可捕获和更新的该值的引用。这种方法对于包含长期操作的效应十分有用，因为重新创建和重启这些操作可能代价高昂或令人望而却步。
 
 ### [DisposableEffect：需要清理的效应](https://developer.android.com/jetpack/compose/side-effects?hl=zh-cn#disposableeffect)
 
+它表示组合生命周期的副作用。`DisposableEffect`可以感知`Composable`的`onActive`和`onDispose`，允许通过副作用完成一些预处理和收尾工作。
+
 和生命周期相关的逻辑执行使用。比如广播注册和反注册、监听和注销监听等等。
 key1传Unit或者true，首次渲染执行一次，重组则不再执行。key1传State，则State值变化，则再次执行。
 
 ### [SideEffect：将 Compose 状态发布为非 Compose 代码](https://developer.android.com/jetpack/compose/side-effects?hl=zh-cn#sideeffect-publish)
 
-每次重组都需要执行的副作用。比如日志打印等等。
+每次重组都需要执行的副作用。比如日志打印等等。**它旨在将更新发布到某些不受组合状态系统管理的外部状态，以保持其始终同步**
 
 ### [produceState：将非 Compose 状态转换为 Compose 状态](https://developer.android.com/jetpack/compose/side-effects?hl=zh-cn#producestate)
 
@@ -135,6 +155,12 @@ key1传Unit或者true，首次渲染执行一次，重组则不再执行。key1�
 
 使用 [`snapshotFlow`](https://developer.android.com/reference/kotlin/androidx/compose/runtime/package-summary?hl=zh-cn#snapshotFlow(kotlin.Function0)) 将 [`State`](https://developer.android.com/reference/kotlin/androidx/compose/runtime/State?hl=zh-cn) 对象转换为冷 Flow。`snapshotFlow` 会在收集到块时运行该块，并发出从块中读取的 `State` 对象的结果。当在 `snapshotFlow` 块中读取的 `State` 对象之一发生变化时，如果新值与之前发出的值不[相等](https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-any/equals.html)，Flow 会向其收集器发出新值（此行为类似于 [`Flow.distinctUntilChanged`](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines.flow/distinct-until-changed.html) 的行为）。
 
+## 总结
+下图来自于这篇博客[Jetpack Compose中的副作用](https://blog.csdn.net/lyabc123456/article/details/128518034)
+
+![总结1](https://img-blog.csdnimg.cn/133b07ad41554d0b8a32622efbbcc6cb.png)
+![总结2](https://img-blog.csdnimg.cn/8c623bb912f24f6e9492573abe5bbe3e.png)
+![总结3](https://img-blog.csdnimg.cn/4d3009ab17f24be58b18abe5bc7ffc72.png) 
 
 # 实战
 

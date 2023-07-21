@@ -24,7 +24,7 @@ fun DTab(
         mutableStateOf(0)
     }
 
-    ScrollableTabRow(selectedTabIndex =) {
+    ScrollableTabRow(selectedTabIndex = selectedIndex) {
 
     }
     TabRow(selectedTabIndex = selectedIndex) {
