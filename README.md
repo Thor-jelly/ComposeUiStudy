@@ -2,6 +2,8 @@
 
 > [Google教程](https://developer.android.com/jetpack/compose/setup?hl=zh-cn#bom-version-mapping)
 >
+> [Navigation页面导航的使用](https://stars-one.site/2023/02/25/jetpack-compose-study-11#%E4%B8%8E%E5%BA%95%E9%83%A8%E5%AF%BC%E8%88%AA%E6%A0%8F%E8%81%94%E7%94%A8) 
+>
 > [Jetpack Compose中的副作用](https://blog.csdn.net/lyabc123456/article/details/128518034)
 > 
 > [官方用例compose-samples](https://github.com/android/compose-samples)
